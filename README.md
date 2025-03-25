@@ -4,7 +4,7 @@ A browser-based 3D shooting game built with Three.js where players destroy obsta
 
 ## Play Now
 
-[Play the game here](#) (Replace with your deployed URL)
+https://game-zeta-indol.vercel.app/
 
 ## Features
 
