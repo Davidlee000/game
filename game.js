@@ -110,6 +110,7 @@ let joystickTouch = null;
 let shootTouch = null;
 let joystickStartPos = { x: 0, y: 0 };
 let currentJoystickPos = { x: 0, y: 0 };
+let lastTapTime = 0;
 
 // --- Function Definitions ---
 
@@ -553,6 +554,9 @@ function startLevel(level) {
 
 // Add mobile touch handlers
 if (isMobile) {
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    
     document.addEventListener('touchstart', (event) => {
         event.preventDefault();
         
@@ -589,10 +593,19 @@ if (isMobile) {
                 const knob = document.getElementById('joystick-knob');
                 knob.style.left = `${touchX - 20}px`;
                 knob.style.top = `${touch.clientY - 20}px`;
-            } else if (touchX >= screenMiddle && !shootTouch) {
-                // Right side - shooting
-                shootTouch = touch.identifier;
-                createProjectile();
+            } else if (touchX >= screenMiddle) {
+                // Right side - camera control and shooting
+                if (!shootTouch) {
+                    shootTouch = touch.identifier;
+                    lastTouchX = touchX;
+                    lastTouchY = touch.clientY;
+                    // Double tap detection for shooting
+                    const now = Date.now();
+                    if (now - lastTapTime < 300) {
+                        createProjectile();
+                    }
+                    lastTapTime = now;
+                }
             }
         });
     });
@@ -623,6 +636,18 @@ if (isMobile) {
                     moveLeft = normalizedDx < -0.3;
                     moveRight = normalizedDx > 0.3;
                 }
+            } else if (touch.identifier === shootTouch) {
+                // Camera rotation
+                const dx = touch.clientX - lastTouchX;
+                const dy = touch.clientY - lastTouchY;
+                
+                // Apply the same sensitivity as mouse movement but adjusted for touch
+                yaw -= dx * sensitivity * 0.5;
+                pitch += dy * sensitivity * 0.5;
+                pitch = Math.max(minPitch, Math.min(maxPitch, pitch));
+                
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
             }
         });
     });
